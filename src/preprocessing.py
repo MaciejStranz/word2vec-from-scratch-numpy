@@ -1,5 +1,9 @@
 import re
 from collections import Counter
+from typing import Iterator
+
+
+TOKEN_PATTERN = re.compile(r"[a-z]+")
 
 
 def load_text(path: str) -> str:
@@ -7,10 +11,45 @@ def load_text(path: str) -> str:
         return f.read()
 
 
-def tokenize(text: str) -> list[str]:
-    text = text.lower()
-    tokens = re.findall(r"\b[a-z]+\b", text)
-    return tokens
+def iter_tokens(
+    path: str,
+    max_tokens: int | None = None,
+    chunk_size: int = 4_000_000,
+) -> Iterator[str]:
+    emitted = 0
+    carry = ""
+
+    with open(path, "r", encoding="utf-8") as f:
+        while True:
+            chunk = f.read(chunk_size)
+            if not chunk:
+                break
+
+            text = (carry + chunk).lower()
+
+            cut = len(text)
+            while cut > 0 and text[cut - 1].isalpha():
+                cut -= 1
+
+            carry = text[cut:]
+            processable = text[:cut]
+
+            for token in TOKEN_PATTERN.findall(processable):
+                yield token
+                emitted += 1
+                if max_tokens is not None and emitted >= max_tokens:
+                    return
+
+        if carry:
+            for token in TOKEN_PATTERN.findall(carry):
+                yield token
+                emitted += 1
+                if max_tokens is not None and emitted >= max_tokens:
+                    return
+
+
+def load_tokens(path: str, max_tokens: int | None = None) -> list[str]:
+    return list(iter_tokens(path, max_tokens=max_tokens))
 
 
 def build_vocab(tokens: list[str], min_count: int = 5, max_vocab_size=None):
