@@ -50,7 +50,6 @@ class SkipGramNegativeSampling:
         self.W_in[center_idx] -= learning_rate * grad_center
         self.W_out[positive_idx] -= learning_rate * grad_pos
 
-        # Ważne: np.add.at poprawnie obsługuje powtarzające się indeksy
         np.add.at(self.W_out, negative_indices, -learning_rate * grad_negs)
 
     def get_input_embeddings(self) -> np.ndarray:
