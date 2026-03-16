@@ -42,6 +42,26 @@ To skip plotting:
 ```bash
 python -m scripts.run_training --no-plot
 ```
+## Tests
+
+The project includes basic `pytest` coverage for the core Word2Vec pipeline:
+
+- gradient checks for the Skip-Gram with Negative Sampling objective
+- skip-gram pair generation and negative sampling utilities
+- preprocessing and vocabulary building
+- training-loop smoke tests
+
+Run all tests from the repository root:
+
+```bash
+python -m pytest -q
+```
+
+Run a single test module:
+
+```bash
+python -m pytest tests/test_gradients.py -q
+```
 
 ## Default configuration
 
@@ -116,20 +136,21 @@ Run statistics:
 
 Loss history:
 
-```python
-[2.9822805202448284, 2.4758902279839003, 2.4043116191036025]
-```
+![Loss plot](training_loss.png)
 
 Nearest neighbors:
 
 ```text
-king   -> colony, policy, round, governor, dollars
-queen  -> band, consisting, coastal, sterreich, heart
-man    -> told, mother, clear, job, worker
-woman  -> musical, score, big, brakeman, ten
-city   -> parliament, treaty, federal, consists, council
-love   -> minerals, accounts, developments, philadelphia, kentucky
+king   -> colony (0.9702), policy (0.9693), round (0.9651), governor (0.9646), dollars (0.9627)
+queen  -> band (0.9837), consisting (0.9766), coastal (0.9755), sterreich (0.9745), heart (0.9738)
+man    -> told (0.9388), mother (0.9321), clear (0.9287), job (0.9272), worker (0.9249)
+woman  -> musical (0.9754), score (0.9722), big (0.9710), brakeman (0.9693), ten (0.9671)
+city   -> parliament (0.9597), treaty (0.9496), federal (0.9471), consists (0.9471), council (0.9461)
+love   -> minerals (0.9846), accounts (0.9823), developments (0.9799), philadelphia (0.9796), kentucky (0.9794)
 ```
+Comment:
+
+The loss decreases clearly over 3 epochs, which confirms that the optimization loop is working correctly. However, the nearest neighbors are still fairly noisy and often not strongly semantic, which is expected for a short demo run on a limited subset of the corpus.
 
 ### Experiment 2: larger training configuration
 
@@ -158,20 +179,21 @@ Run statistics:
 
 Loss history:
 
-```python
-[3.422933107234636, 3.0255078024474575, 2.9634414975286854, 2.910398792451537, 2.8631326549965586, 2.82093195854479, 2.7833082746129234, 2.7502138986282225, 2.721030775023752, 2.6953454396206955]
-```
+![Loss plot](training_loss_10epochs.png)
 
 Nearest neighbors:
 
 ```text
-king   -> priam, daniel, concerto, secretary, frederick
-queen  -> reserve, facto, navy, rush, seat
-man    -> dollar, writes, woman, boyle, mourned
-woman  -> screenwriter, bertram, knowing, scudder, dollar
-city   -> downtown, port, melbourne, town, arctic
-love   -> fell, instrument, priam, friend, daughter
+king   -> priam (0.5910), daniel (0.5839), concerto (0.5776), secretary (0.5730), frederick (0.5607)
+queen  -> reserve (0.6633), facto (0.6555), navy (0.6173), rush (0.6079), seat (0.5987)
+man    -> dollar (0.5495), writes (0.5438), woman (0.5378), boyle (0.5078), mourned (0.4854)
+woman  -> screenwriter (0.6440), bertram (0.6273), knowing (0.6082), scudder (0.5941), dollar (0.5926)
+city   -> downtown (0.6107), port (0.5959), melbourne (0.5847), town (0.5829), arctic (0.5552)
+love   -> fell (0.6739), instrument (0.6011), priam (0.5954), friend (0.5896), daughter (0.5725)
 ```
+Comment:
+
+The loss keeps decreasing steadily over 10 epochs, showing more consistent training on the larger setup. The learned neighborhoods are still imperfect, but some results become more meaningful, for example `city` -> `downtown`, `port`, `melbourne`, `town` and the relation between `man` and `woman`, which suggests that the embeddings are beginning to capture useful distributional structure.
 
 ## Project structure
 
