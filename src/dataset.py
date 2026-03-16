@@ -37,11 +37,21 @@ def sample_negative_words(
     probs: np.ndarray,
     positive_idx: int
 ) -> np.ndarray:
-    negatives = []
+    negatives = np.random.choice(
+        vocab_size,
+        size=num_samples,
+        replace=True,
+        p=probs,
+    )
 
-    while len(negatives) < num_samples:
-        candidate = np.random.choice(vocab_size, p=probs)
-        if candidate != positive_idx:
-            negatives.append(candidate)
+    while True:
+        mask = negatives == positive_idx
+        if not np.any(mask):
+            return negatives.astype(np.int64)
 
-    return np.array(negatives, dtype=np.int64)
+        negatives[mask] = np.random.choice(
+            vocab_size,
+            size=int(mask.sum()),
+            replace=True,
+            p=probs,
+        )

@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.utils import sigmoid
+from src.utils import sigmoid, softplus
 
 
 class SkipGramNegativeSampling:
@@ -19,19 +19,19 @@ class SkipGramNegativeSampling:
         positive_idx: int,
         negative_indices: np.ndarray
     ):
-        center_vec = self.W_in[center_idx]                # (D,)
-        pos_vec = self.W_out[positive_idx]               # (D,)
-        neg_vecs = self.W_out[negative_indices]          # (K, D)
+        center_vec = self.W_in[center_idx]
+        pos_vec = self.W_out[positive_idx]
+        neg_vecs = self.W_out[negative_indices]
 
-        pos_score = pos_vec @ center_vec                 # scalar
-        neg_scores = neg_vecs @ center_vec               # (K,)
+        pos_score = float(pos_vec @ center_vec)
+        neg_scores = neg_vecs @ center_vec
 
-        pos_sig = sigmoid(pos_score)                     # scalar
-        neg_sigs = sigmoid(neg_scores)                   # (K,)
+        pos_sig = sigmoid(pos_score)
+        neg_sigs = sigmoid(neg_scores)
 
-        loss = -np.log(pos_sig + 1e-10) - np.sum(np.log(1.0 - neg_sigs + 1e-10))
+        loss = float(softplus(-pos_score) + np.sum(softplus(neg_scores)))
 
-        grad_center = (pos_sig - 1.0) * pos_vec + np.sum(neg_sigs[:, None] * neg_vecs, axis=0)
+        grad_center = (pos_sig - 1.0) * pos_vec + (neg_sigs @ neg_vecs)
         grad_pos = (pos_sig - 1.0) * center_vec
         grad_negs = neg_sigs[:, None] * center_vec[None, :]
 
